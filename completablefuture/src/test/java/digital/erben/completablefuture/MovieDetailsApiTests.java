@@ -5,12 +5,12 @@ import org.junit.jupiter.api.Test;
 public class MovieDetailsApiTests {
 
     @Test
-    public void shouldThrowIllegalArgumentExceptionWhenNullValueIsPassed() {
+    public void loadDetailsForMovie_shouldThrowIllegalArgumentException_WhenNullValueIsPassed() {
         // Mocks.movieDetailsApiMock().loadDetailsForMovie(null); // implement further
     }
 
     @Test
-    public void shouldLoadBarbieMovieWhenBarbieIsPassedAsTitle() {
+    public void loadDetailsForMovie_shouldLoadBarbieMovieWhenBarbieIsPassedAsTitle() {
         //Mocks.movieDetailsApiMock().loadDetailsForMovie("Barbie"); // implement checks
     }
 

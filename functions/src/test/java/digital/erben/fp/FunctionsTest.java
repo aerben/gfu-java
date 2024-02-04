@@ -1,11 +1,11 @@
 package digital.erben.fp;
 
-import org.junit.jupiter.api.*;
-
 import java.util.function.Function;
+import org.junit.jupiter.api.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class FunctionsTest {
+
     private FunctionMap<Integer, Integer> integerFunctionMap;
 
     @BeforeEach
@@ -16,7 +16,9 @@ public class FunctionsTest {
     @Test
     @Order(7)
     void squareFunction() {
-        Function<Integer, Integer> squareFunction = integerFunctionMap.getFunction("square");
+        Function<Integer, Integer> squareFunction = integerFunctionMap.getFunction(
+            "square"
+        );
 
         int result = squareFunction.apply(5);
 
@@ -36,7 +38,9 @@ public class FunctionsTest {
     @Test
     @Order(5)
     void incrementFunction() {
-        Function<Integer, Integer> incrementFunction = integerFunctionMap.getFunction("increment");
+        Function<Integer, Integer> incrementFunction = integerFunctionMap.getFunction(
+            "increment"
+        );
 
         int result = incrementFunction.apply(399);
         Assertions.assertEquals(400, result);
@@ -45,7 +49,9 @@ public class FunctionsTest {
     @Test
     @Order(6)
     void destDecrementFunction() {
-        Function<Integer, Integer> decrementFunction = integerFunctionMap.getFunction("decrement");
+        Function<Integer, Integer> decrementFunction = integerFunctionMap.getFunction(
+            "decrement"
+        );
 
         int result = decrementFunction.apply(800);
         Assertions.assertEquals(799, result);
@@ -67,7 +73,6 @@ public class FunctionsTest {
 
         int result = signFunction.apply(23);
         Assertions.assertEquals(1, result);
-
     }
 
     @Test

@@ -7,8 +7,8 @@ package digital.erben.fp;
  * TODO: implement a method and verify it by running {@link FunctionsTest}
  */
 public class Functions {
-    private Functions() {
-    }
+
+    private Functions() {}
 
     /**
      * A static factory method that creates an integer function map with basic functions:

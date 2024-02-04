@@ -1,7 +1,6 @@
 package digital.erben.fp;
 
 import digital.erben.fp.exception.InvalidFunctionNameException;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -12,6 +11,7 @@ import java.util.function.Function;
  *
  */
 public class FunctionMap<T, R> {
+
     private Map<String, Function<T, R>> functionMap;
 
     FunctionMap() {
@@ -29,5 +29,4 @@ public class FunctionMap<T, R> {
             throw new InvalidFunctionNameException(name);
         }
     }
-
 }
