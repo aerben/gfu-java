@@ -1,6 +1,7 @@
 package digital.erben.movies;
 
 import java.time.Duration;
+import java.util.Comparator;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -30,7 +31,8 @@ public class MovieRatingsService {
      * @return A stream of MovieRating objects representing the movie ratings sorted by votes.
      */
     public Stream<MovieRating> getRatingsSortedByVotes(boolean ascending) {
-        throw new UnsupportedOperationException("Not implemented");
+        Comparator<MovieRating> comparator = Comparator.comparingInt(MovieRating::votes);
+        return ds.load().sorted(ascending ? comparator : comparator.reversed());
     }
 
     /**
@@ -40,7 +42,7 @@ public class MovieRatingsService {
      * @return A stream of MovieRating objects representing the movie ratings greater than or equal to the cutoff.
      */
     public Stream<MovieRating> getRatingsGreaterThan(double cutoffInclusive) {
-        throw new UnsupportedOperationException("Not implemented");
+        return ds.load().filter(mr -> mr.rating() > cutoffInclusive);
     }
 
     /**
@@ -49,7 +51,7 @@ public class MovieRatingsService {
      * @return A stream of strings representing the names sorted alphabetically.
      */
     public Stream<String> getNamesSortedAlphabetically() {
-        throw new UnsupportedOperationException("Not implemented");
+        return ds.load().map(MovieRating::name).sorted();
     }
 
     /**
@@ -58,7 +60,7 @@ public class MovieRatingsService {
      * @return A stream of strings representing the distinct genres.
      */
     public Stream<String> getDistinctGenres() {
-        throw new UnsupportedOperationException("Not implemented");
+        return ds.load().flatMap(mr -> mr.genre().stream()).distinct();
     }
 
     /**
@@ -68,7 +70,7 @@ public class MovieRatingsService {
      * @return A stream of MovieRating objects representing the movie ratings that have all the specified genres.
      */
     public Stream<MovieRating> getMoviesHavingAllGenres(Set<String> genre) {
-        throw new UnsupportedOperationException("Not implemented");
+        return ds.load().filter(mr -> mr.genre().containsAll(genre));
     }
 
     /**
@@ -77,7 +79,7 @@ public class MovieRatingsService {
      * @return The total vote count over all movie ratings.
      */
     public Long getTotalVoteCountOverAllRatings() {
-        throw new UnsupportedOperationException("Not implemented");
+        return (long) ds.load().mapToInt(MovieRating::votes).sum();
     }
 
     /**
@@ -87,7 +89,8 @@ public class MovieRatingsService {
      * @return A stream of MovieRating objects representing the movie ratings sorted by duration.
      */
     public Stream<MovieRating> getMovieRatingsSortedByDuration(boolean ascending) {
-        throw new UnsupportedOperationException("Not implemented");
+        Comparator<MovieRating> durationComparator = Comparator.comparing(MovieRating::runtime);
+        return ds.load().sorted(ascending ? durationComparator : durationComparator.reversed());
     }
 
     /**
@@ -97,7 +100,10 @@ public class MovieRatingsService {
      * @return The average rating of movies having the specified genre.
      */
     public Float getAverageRatingOfMoviesHavingGenre(String genre) {
-        throw new UnsupportedOperationException("Not implemented");
+        return (float) ds.load()
+            .filter(mr -> mr.genre().contains(genre))
+            .mapToDouble(MovieRating::rating)
+            .average().orElseGet(() -> 0d);
     }
 
     /**
@@ -105,10 +111,10 @@ public class MovieRatingsService {
      *
      * @param name The name of the movie.
      * @return An optional MovieRating object representing the rating of the movie with the specified name,
-     *         or an empty optional if no movie with the given name is found.
+     * or an empty optional if no movie with the given name is found.
      */
     public Optional<MovieRating> findMovieWithName(String name) {
-        throw new UnsupportedOperationException("Not implemented");
+        return ds.load().filter(mr -> mr.name().equals(name)).findAny();
     }
 
     /**
@@ -118,6 +124,6 @@ public class MovieRatingsService {
      * @return A stream of MovieRating objects representing the movie ratings with a duration less than the specified duration.
      */
     public Stream<MovieRating> getMoviesWithDurationLessThan(Duration duration) {
-        throw new UnsupportedOperationException("Not implemented");
+        return ds.load().filter(mr -> mr.runtime().toMinutes() < duration.toMinutes());
     }
 }
