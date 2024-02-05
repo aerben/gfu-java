@@ -1,10 +1,8 @@
 package digital.erben.movies;
 
 import java.time.Duration;
-import java.util.Comparator;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 public class MovieRatingsService {
@@ -22,7 +20,7 @@ public class MovieRatingsService {
      * @return A stream of MovieRating objects representing the movie ratings.
      */
     public Stream<MovieRating> getRatings(long limit) {
-        throw new UnsupportedOperationException("Not implemented");
+        return ds.load().limit(limit);
     }
 
     /**
