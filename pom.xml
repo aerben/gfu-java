@@ -10,11 +10,13 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>completablefuture</module>
-        <module>httpclient</module>
         <module>records</module>
         <module>streams</module>
-        <module>various</module>
         <module>functions</module>
+        <module>reactive-web</module>
+        <module>spring-autoconfiguration/module</module>
+        <module>spring-autoconfiguration/app</module>
+        <module>spring-starter/module</module>
+        <module>spring-starter/app</module>
     </modules>
 </project>

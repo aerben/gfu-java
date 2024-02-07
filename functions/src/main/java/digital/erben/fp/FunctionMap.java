@@ -3,6 +3,7 @@ package digital.erben.fp;
 import digital.erben.fp.exception.InvalidFunctionNameException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -22,11 +23,7 @@ public class FunctionMap<T, R> {
         functionMap.put(name, function);
     }
 
-    public Function<T, R> getFunction(String name) {
-        if (functionMap.containsKey(name)) {
-            return functionMap.get(name);
-        } else {
-            throw new InvalidFunctionNameException(name);
-        }
+    public Optional<Function<T, R>> getFunction(String name) {
+        return Optional.ofNullable(functionMap.get(name));
     }
 }
