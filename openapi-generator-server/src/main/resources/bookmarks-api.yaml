@@ -1,0 +1,83 @@
+openapi: 3.0.0
+info:
+  title: Bookmarks API
+  version: 1.0.0
+  description: API for managing bookmarks
+servers:
+  - url: http://localhost:8080/
+paths:
+  /bookmarks:
+    get:
+      summary: Get all bookmarks
+      responses:
+        '200':
+          description: A list of bookmarks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Bookmark'
+    post:
+      summary: Create a new bookmark
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Bookmark'
+      responses:
+        '200':
+          description: New bookmark created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bookmark'
+  /bookmarks/{id}:
+    get:
+      summary: Get a bookmark by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: long
+      responses:
+        '200':
+          description: Bookmark found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bookmark'
+        '404':
+          description: Bookmark not found
+    delete:
+      summary: Delete a bookmark by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: long
+      responses:
+        '200':
+          description: Bookmark deleted
+        '404':
+          description: Bookmark not found
+components:
+  schemas:
+    Bookmark:
+      type: object
+      properties:
+        id:
+          type: long
+          description: Unique identifier for the Bookmark
+        userId:
+          type: long
+          description: Identifier for the user
+        cityId:
+          type: long
+          description: Identifier for the city
+      required:
+        - userId
+        - cityId

@@ -1,16 +1,23 @@
 package digital.erben.reactiveweb;
+import io.github.resilience4j.reactor.ratelimiter.operator.RateLimiterOperator;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import digital.erben.reactiveweb.cities.model.CitiesResponse;
+import digital.erben.reactiveweb.cities.model.City;
+import io.github.resilience4j.ratelimiter.RateLimiter;
+import io.github.resilience4j.ratelimiter.RateLimiterConfig;
+import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.*;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
 import java.io.IOException;
 import java.net.URI;
@@ -19,8 +26,11 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.util.List;
 import java.util.function.Predicate;
 
+@SuppressWarnings("UnnecessaryLocalVariable")
 public class WebClientsExampleTests {
     public static final String URL = "https://wft-geo-db.p.rapidapi.com/v1/geo/cities?countryIds=DE&minPopulation=200000&limit=100";
     private final ObjectMapper objectMapper;
@@ -76,8 +86,7 @@ public class WebClientsExampleTests {
 
     @Test
     public void callApiViaWebClient() throws JsonProcessingException, InterruptedException {
-        var restClient = WebClient.create();
-        restClient.get()
+        WebClient.create().get()
             .uri(URI.create(URL))
             .header("X-RapidAPI-Key", "16e1546221msh6270284dc1921b8p16483fjsnf33be4140b48")
             .header("X-RapidAPI-Host", "wft-geo-db.p.rapidapi.com")
@@ -90,8 +99,7 @@ public class WebClientsExampleTests {
 
     @Test
     public void callApiViaWebClientWithFullErrorHandling() throws JsonProcessingException, InterruptedException {
-        var restClient = WebClient.create();
-        restClient.get()
+        WebClient.create().get()
             .uri(URI.create(URL))
             .header("X-RapidAPI-Key", "16e1546221msh6270284dc1921b8p16483fjsnf33be4140b48s")
             .header("X-RapidAPI-Host", "wft-geo-db.p.rapidapi.com")
@@ -137,7 +145,7 @@ public class WebClientsExampleTests {
         }
     }
 
-    final class NotFound extends DhlApiException {
+    static final class NotFound extends DhlApiException {
         NotFound(ClientResponse clientResponse) {
             super(clientResponse);
         }
@@ -146,7 +154,7 @@ public class WebClientsExampleTests {
         }
     }
 
-    final class Forbidden extends DhlApiException {
+    static final class Forbidden extends DhlApiException {
         Forbidden(ClientResponse clientResponse) {
             super(clientResponse);
         }
@@ -156,7 +164,7 @@ public class WebClientsExampleTests {
         }
     }
 
-    final class BadRequest extends DhlApiException {
+    static final class BadRequest extends DhlApiException {
         BadRequest(ClientResponse clientResponse) {
             super(clientResponse);
         }
@@ -166,8 +174,67 @@ public class WebClientsExampleTests {
         }
     }
 
-
     static Predicate<HttpStatusCode> code(int code) {
         return (httpStatusCode -> httpStatusCode.value() == code);
+    }
+
+    @Test
+    public void callApiViaWebClientFromAFluxWithRetry() throws JsonProcessingException, InterruptedException {
+        var webClient = WebClient.create();
+
+        Flux<String> countries = Flux.just("DE", "FR", "IT");
+
+        Flux<City> cityFlux = countries.flatMap(country -> {
+                Mono<List<City>> monoList = webClient.get()
+                    .uri(URI.create(URL))
+                    .header("X-RapidAPI-Key", "16e1546221msh6270284dc1921b8p16483fjsnf33be4140b48")
+                    .header("X-RapidAPI-Host", "wft-geo-db.p.rapidapi.com")
+                    .retrieve()
+                    .bodyToMono(CitiesResponse.class) // kürzer als toEntity wenn man den Response Code nicht braucht
+                    .mapNotNull(CitiesResponse::data);
+                Flux<City> flattenedFlux = monoList.flatMapMany(Flux::fromIterable); // macht aus Mono<List<?>> ein Flux<?>
+                return flattenedFlux;
+            }
+        ).retryWhen(Retry.backoff(3, Duration.ofMinutes(1))); // on failure, retries automatically
+
+        cityFlux.subscribe(System.out::println);
+
+
+        Thread.sleep(10000L);
+    }
+
+
+    @Test
+    public void callApiViaWebClientFromAFluxWithRateLimit() throws JsonProcessingException, InterruptedException {
+        var webClient = WebClient.create();
+        RateLimiterConfig config = RateLimiterConfig.custom()
+            .limitRefreshPeriod(Duration.ofSeconds(10))
+            .limitForPeriod(2) // 10 requests per second
+            .timeoutDuration(Duration.ofSeconds(5))
+            .build();
+
+        RateLimiterRegistry registry = RateLimiterRegistry.of(config);
+        RateLimiter rateLimiter = registry.rateLimiter("countriesRateLimiter");
+
+
+        Flux<String> countries = Flux.just("DE", "FR", "IT");
+
+        Flux<City> cityFlux = countries.flatMap(country -> {
+                Mono<List<City>> monoList = webClient.get()
+                    .uri(URI.create(URL))
+                    .header("X-RapidAPI-Key", "16e1546221msh6270284dc1921b8p16483fjsnf33be4140b48")
+                    .header("X-RapidAPI-Host", "wft-geo-db.p.rapidapi.com")
+                    .retrieve()
+                    .bodyToMono(CitiesResponse.class) // kürzer als toEntity wenn man den Response Code nicht braucht
+                    .mapNotNull(CitiesResponse::data);
+                Flux<City> flattenedFlux = monoList.flatMapMany(Flux::fromIterable); // macht aus Mono<List<?>> ein Flux<?>
+                return flattenedFlux;
+            }
+        ).transformDeferred(RateLimiterOperator.of(rateLimiter));
+
+        cityFlux.subscribe(System.out::println);
+
+
+        Thread.sleep(10000L);
     }
 }

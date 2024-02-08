@@ -18,5 +18,6 @@
         <module>spring-autoconfiguration/app</module>
         <module>spring-starter/module</module>
         <module>spring-starter/app</module>
+        <module>data-mongodb</module>
     </modules>
 </project>
