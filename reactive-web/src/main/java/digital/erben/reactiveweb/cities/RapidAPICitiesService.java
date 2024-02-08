@@ -52,7 +52,7 @@ public class RapidAPICitiesService {
     public Mono<List<City>> retrieveCitiesForCountryAsync(String countryCode) {
         var restClient = WebClient.create();
         return restClient.get()
-            .uri(URI.create("https://wft-geo-db.p.rapidapi.com/v1/geo/cities?countryIds=DE&minPopulation=500000"))
+            .uri(URI.create("https://wft-geo-db.p.rapidapi.com/v1/geo/cities?countryIds="+countryCode+"&minPopulation=500000"))
             .header("X-RapidAPI-Key", "16e1546221msh6270284dc1921b8p16483fjsnf33be4140b48")
             .header("X-RapidAPI-Host", "wft-geo-db.p.rapidapi.com")
             .retrieve()
