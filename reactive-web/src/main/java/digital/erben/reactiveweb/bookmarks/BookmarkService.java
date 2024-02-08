@@ -1,7 +1,9 @@
 package digital.erben.reactiveweb.bookmarks;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -17,10 +19,20 @@ public class BookmarkService {
     }
 
     public Mono<Void> createBookmarkAsync(Bookmark bookmark) {
-        throw new UnsupportedOperationException();
+        return WebClient.create().post()
+            .uri("https://gfu.requestcatcher.com/test")
+            .body(BodyInserters.fromValue(bookmark))
+            .retrieve()
+            .toBodilessEntity()
+            .mapNotNull(ResponseEntity::getBody);
     }
 
     public void createBookmark(Bookmark bookmark) {
-        throw new UnsupportedOperationException();
+        ResponseEntity<Void> entity = RestClient.create().post()
+            .uri("https://gfu.requestcatcher.com/test")
+            .body(bookmark)
+            .retrieve()
+            .toBodilessEntity();
+        System.out.println(entity);
     }
 }

@@ -80,6 +80,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin.version}</version>
                 <configuration>
+                    <compilerVersion>21</compilerVersion>
                     <compilerArgs>
                         <arg>-parameters</arg>
                     </compilerArgs>

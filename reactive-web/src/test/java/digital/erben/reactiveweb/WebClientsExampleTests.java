@@ -1,5 +1,4 @@
 package digital.erben.reactiveweb;
-import io.github.resilience4j.reactor.ratelimiter.operator.RateLimiterOperator;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,8 +8,10 @@ import digital.erben.reactiveweb.cities.model.City;
 import io.github.resilience4j.ratelimiter.RateLimiter;
 import io.github.resilience4j.ratelimiter.RateLimiterConfig;
 import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
+import io.github.resilience4j.reactor.ratelimiter.operator.RateLimiterOperator;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.*;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.ClientResponse;
@@ -29,6 +30,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
 import java.util.function.Predicate;
+
 
 @SuppressWarnings("UnnecessaryLocalVariable")
 public class WebClientsExampleTests {
@@ -125,8 +127,10 @@ public class WebClientsExampleTests {
             case BadRequest br -> new DatabaseRow(br.getOffendingDhlField());
             case Forbidden fb -> new DatabaseRow(fb.getReason());
             case NotFound nf -> new DatabaseRow(nf.getURI().toString());
-            default -> new DatabaseRow("Known error occured");
+            case HttpStatusCodeException hsce -> new DatabaseRow(hsce.getStatusText()); // the "actual" default case
+            default -> new DatabaseRow(throwable.getMessage());
         };
+
         System.err.println(databaseRow);
     }
 
@@ -203,22 +207,13 @@ public class WebClientsExampleTests {
         Thread.sleep(10000L);
     }
 
-
     @Test
     public void callApiViaWebClientFromAFluxWithRateLimit() throws JsonProcessingException, InterruptedException {
         var webClient = WebClient.create();
-        RateLimiterConfig config = RateLimiterConfig.custom()
-            .limitRefreshPeriod(Duration.ofSeconds(10))
-            .limitForPeriod(2) // 10 requests per second
-            .timeoutDuration(Duration.ofSeconds(5))
-            .build();
-
-        RateLimiterRegistry registry = RateLimiterRegistry.of(config);
-        RateLimiter rateLimiter = registry.rateLimiter("countriesRateLimiter");
 
 
-        Flux<String> countries = Flux.just("DE", "FR", "IT");
-
+        Flux<String> countries = Flux.just("DE", "FR", "IT")
+            .transformDeferred(RateLimiterOperator.of(defaultRateLimiter()));
         Flux<City> cityFlux = countries.flatMap(country -> {
                 Mono<List<City>> monoList = webClient.get()
                     .uri(URI.create(URL))
@@ -230,11 +225,23 @@ public class WebClientsExampleTests {
                 Flux<City> flattenedFlux = monoList.flatMapMany(Flux::fromIterable); // macht aus Mono<List<?>> ein Flux<?>
                 return flattenedFlux;
             }
-        ).transformDeferred(RateLimiterOperator.of(rateLimiter));
+        );
 
         cityFlux.subscribe(System.out::println);
 
 
         Thread.sleep(10000L);
+    }
+
+    private static RateLimiter defaultRateLimiter() {
+        RateLimiterConfig config = RateLimiterConfig.custom()
+            .limitRefreshPeriod(Duration.ofSeconds(10))
+            .limitForPeriod(2) // 2 requests in 10 seconds
+            .timeoutDuration(Duration.ofSeconds(5))
+            .build();
+
+        RateLimiterRegistry registry = RateLimiterRegistry.of(config);
+        RateLimiter rateLimiter = registry.rateLimiter("countriesRateLimiter");
+        return rateLimiter;
     }
 }

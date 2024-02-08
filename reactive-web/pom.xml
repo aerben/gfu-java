@@ -16,6 +16,7 @@
 		<java.version>21</java.version>
 	</properties>
 	<dependencies>
+		<!-- These are the dependencies for rate limiting! -->
 		<dependency>
 			<groupId>io.github.resilience4j</groupId>
 			<artifactId>resilience4j-spring-boot3</artifactId>
@@ -26,6 +27,7 @@
 			<artifactId>resilience4j-reactor</artifactId>
 			<version>2.1.0</version>
 		</dependency>
+		<!-- END: These are the dependencies for rate limiting! -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webflux</artifactId>

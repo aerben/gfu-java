@@ -36,11 +36,15 @@ public class RapidAPICitiesService {
      * @return a list of cities for the given country code
      */
     public List<City> retrieveCitiesForCountry(String countryCode) {
-        var spec = RestClient.create().get().uri(url);
-        for (var entry : rapidUrlHeaders.entrySet()) {
-            spec = spec.header(entry.getKey(), entry.getValue());
-        }
-        return spec.retrieve().toEntity(CitiesResponse.class).getBody().data();
+        var restClient = RestClient.create();
+        return restClient.get()
+            .uri(URI.create(
+                "https://wft-geo-db.p.rapidapi.com/v1/geo/cities?countryIds=" + countryCode + "&minPopulation=500000"))
+            .header("X-RapidAPI-Key", "16e1546221msh6270284dc1921b8p16483fjsnf33be4140b48")
+            .header("X-RapidAPI-Host", "wft-geo-db.p.rapidapi.com")
+            .retrieve()
+            .toEntity(CitiesResponse.class)
+            .getBody().data();
     }
 
     /**
@@ -52,12 +56,12 @@ public class RapidAPICitiesService {
     public Mono<List<City>> retrieveCitiesForCountryAsync(String countryCode) {
         var restClient = WebClient.create();
         return restClient.get()
-            .uri(URI.create("https://wft-geo-db.p.rapidapi.com/v1/geo/cities?countryIds="+countryCode+"&minPopulation=500000"))
+            .uri(URI.create(
+                "https://wft-geo-db.p.rapidapi.com/v1/geo/cities?countryIds=" + countryCode + "&minPopulation=500000"))
             .header("X-RapidAPI-Key", "16e1546221msh6270284dc1921b8p16483fjsnf33be4140b48")
             .header("X-RapidAPI-Host", "wft-geo-db.p.rapidapi.com")
             .retrieve()
-            .toEntity(CitiesResponse.class)
-            .mapNotNull(HttpEntity::getBody)
+            .bodyToMono(CitiesResponse.class)
             .map(CitiesResponse::data);
     }
 

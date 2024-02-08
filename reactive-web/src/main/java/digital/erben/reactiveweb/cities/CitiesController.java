@@ -22,7 +22,8 @@ public class CitiesController {
     public Flux<City> getAllCities(
         @RequestParam(value = "fromPopulation", required = false) Long population
     ) {
-       throw new UnsupportedOperationException();
+       return Flux.fromStream(ds.loadCities())
+           .filter(city -> population == null || population < city.population());
     }
 
 }
