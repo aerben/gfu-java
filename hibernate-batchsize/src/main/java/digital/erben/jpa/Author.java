@@ -26,9 +26,12 @@ public class Author {
   @Column(name = "name")
   private String name;
 
+  /**
+   * Owning entity due to Join column
+   */
   @BatchSize(size = 2)
   @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-  @JoinColumn(name="book_id")
+  @JoinColumn(name="author_id")
   private List<Book> books = new ArrayList<>();
 
   public static Author getInstance(String text) {
