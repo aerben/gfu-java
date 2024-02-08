@@ -19,7 +19,8 @@ Implementiere die beiden Methoden in `digital.erben.reactiveweb.bookmarks.Bookma
 - Erstelle dir einen RequestCatcher auf [Request Catcher](https://requestcatcher.com/)
 - Nehme die URL und poste die Bookmarks, die du in den Methoden erhältst, gegen die URL
 
- # Aufgabe 4: Controller mit Spring Webflux (GET)
+# Aufgabe 4: Controller mit Spring Webflux (GET)
 
 Implementiere den Controller in `digital.erben.reactiveweb.cities.CitiesController`
 und lasse danach den Test in `digital.erben.reactiveweb.CitiesControllerTest` laufen.
+Wenn du dann noch Zeit hast, denke dir gerne weitere Controller aus und implementiere sie.
