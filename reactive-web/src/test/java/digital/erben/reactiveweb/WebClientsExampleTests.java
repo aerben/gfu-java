@@ -226,7 +226,7 @@ public class WebClientsExampleTests {
                     .header("X-RapidAPI-Host", "wft-geo-db.p.rapidapi.com")
                     .retrieve()
                     .bodyToMono(CitiesResponse.class) // kürzer als toEntity wenn man den Response Code nicht braucht
-                    .mapNotNull(CitiesResponse::data)
+                    .mapNotNull(CitiesResponse::data);
                 Flux<City> flattenedFlux = monoList.flatMapMany(Flux::fromIterable); // macht aus Mono<List<?>> ein Flux<?>
                 return flattenedFlux;
             }
